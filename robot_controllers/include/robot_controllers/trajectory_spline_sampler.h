@@ -40,6 +40,8 @@
 #ifndef ROBOT_CONTROLLERS_TRAJECTORY_SPLINE_SAMPLER_H_
 #define ROBOT_CONTROLLERS_TRAJECTORY_SPLINE_SAMPLER_H_
 
+#include <algorithm>
+
 #include <robot_controllers/trajectory.h>
 
 namespace robot_controllers
@@ -221,8 +223,14 @@ public:
       throw 0;
     }
 
+    pos_zero_ = false;
+    if (trajectory.points[0].qd.size() > trajectory.points[0].q.size())
+    {
+      pos_zero_ = true;
+    }
+
     // Check for number of joints
-    size_t num_joints = trajectory.points[0].q.size();
+    size_t num_joints = std::max(trajectory.points[0].q.size(), trajectory.points[0].qd.size());
 
     // Trajectory length one is special
     if (trajectory.size() == 1)
@@ -234,13 +242,31 @@ public:
       segments_[0].splines.resize(num_joints);
       for (size_t j = 0; j < num_joints; ++j)
       {
-        LinearSpline(trajectory.points[0].q[j],
-                     trajectory.points[0].q[j],
-                     0.0,
-                     segments_[0].splines[j]);
+        // If using velocities without positions
+        if (pos_zero_)
+        {
+          LinearSpline(trajectory.points[0].qd[j],
+                       trajectory.points[0].qd[j],
+                       0.0,
+                       segments_[0].splines[j]);
+        }
+        else
+        {
+          LinearSpline(trajectory.points[0].q[j],
+                       trajectory.points[0].q[j],
+                       0.0,
+                       segments_[0].splines[j]);
+        }
       }
       segments_[0].type = LINEAR;
-      result.q.resize(num_joints);
+      if (pos_zero_)
+      {
+        result.qd.resize(num_joints);
+      }
+      else
+      {
+        result.qd.resize(num_joints);
+      }
     }
     else
     {
@@ -256,13 +282,14 @@ public:
 
         // Set up spline
         segments_[p].splines.resize(num_joints);
+        // If you have accelerations, positions, and velocities
         if (trajectory.points[p].qdd.size() == trajectory.points[p].q.size())
         {
           result.q.resize(num_joints);
           result.qd.resize(num_joints);
           result.qdd.resize(num_joints);
 
-          // Have accelerations, will use Quintic.
+          // Have accelerations and positions, will use Quintic.
           for (size_t j = 0; j < num_joints; ++j)
           {
             QuinticSpline(trajectory.points[p].q[j],
@@ -276,6 +303,7 @@ public:
           }
           segments_[p].type = QUINTIC;
         }
+        // If you have velocities and positions
         else if (trajectory.points[p].qd.size() == trajectory.points[p].q.size())
         {
           result.q.resize(num_joints);
@@ -293,10 +321,43 @@ public:
           }
           segments_[p].type = CUBIC;
         }
+        // If you have no positions but you have accelerations and velocities
+        else if (pos_zero_ && trajectory.points[p].qdd.size() == trajectory.points[p].qd.size())
+        {
+          result.qd.resize(num_joints);
+          result.qdd.resize(num_joints);
+
+          // Velocities + Accelerations, do Cubic.
+          for (size_t j = 0; j < num_joints; ++j)
+          {
+            CubicSpline(trajectory.points[p].qd[j],
+                        trajectory.points[p].qdd[j],
+                        trajectory.points[p+1].qd[j],
+                        trajectory.points[p+1].qdd[j],
+                        segments_[p].end_time - segments_[p].start_time,
+                        segments_[p].splines[j]);
+          }
+          segments_[p].type = CUBIC;
+        }
+        // If you only have velocities
+        else if (pos_zero_)
+        {
+          result.qd.resize(num_joints);
+
+          // Velocities, do Linear.
+          for (size_t j = 0; j < num_joints; ++j)
+          {
+            LinearSpline(trajectory.points[p].qd[j],
+                         trajectory.points[p+1].qd[j],
+                         segments_[p].end_time - segments_[p].start_time,
+                         segments_[p].splines[j]);
+          }
+          segments_[p].type = LINEAR;
+        }
+        // If you only have positions
         else
         {
           result.q.resize(num_joints);
- 
           // Lame -- only positions do linear
           for (size_t j = 0; j < num_joints; ++j)
           {
@@ -338,15 +399,31 @@ public:
         sampleQuinticSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
                             result.q[i], result.qd[i], result.qdd[i]);
       }
-      else if(segments_[seg_].type == CUBIC)
+      else if (segments_[seg_].type == CUBIC)
       {
-        sampleCubicSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
-                          result.q[i], result.qd[i]);
+        if (pos_zero_)
+        {
+          sampleCubicSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
+                            result.qd[i], result.qdd[i]);
+        }
+        else
+        {
+          sampleCubicSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
+                            result.q[i], result.qd[i]);
+        }
       }
       else
       {
-        sampleLinearSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
-                           result.q[i]);
+        if (pos_zero_)
+        {
+          sampleLinearSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
+                             result.qd[i]);
+        }
+        else
+        {
+          sampleLinearSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
+                             result.q[i]);
+        }
       }
     }
 
@@ -371,6 +448,7 @@ private:
   Trajectory trajectory_;
   TrajectoryPoint result;
   int seg_;
+  bool pos_zero_; 
 };
 
 }  // namespace robot_controllers
