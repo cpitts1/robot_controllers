@@ -151,6 +151,50 @@ TEST(TrajectoryTests, test_pos)
 
 }
 
+
+TEST(TrajectoryTests, test_vel)
+{
+  robot_controllers::Trajectory t;
+  t.points.resize(2);
+  t.points[0].qd.resize(1);
+  t.points[0].qd[0] = 0.0;
+  t.points[0].time = 0.0;
+  t.points[1].qd.resize(1);
+  t.points[1].qd[0] = 1.0;
+  t.points[1].time = 1.0;
+
+  boost::shared_ptr<robot_controllers::TrajectorySampler> sampler_;
+  sampler_.reset(new robot_controllers::SplineTrajectorySampler(t));
+  robot_controllers::TrajectoryPoint p1 = sampler_->sample(0.5);
+
+  EXPECT_EQ(1, p1.qd.size());
+}
+
+
+TEST(TrajectoryTests, test_vel_accel)
+{
+  robot_controllers::Trajectory t;
+  t.points.resize(2);
+  t.points[0].qd.resize(1);
+  t.points[0].qdd.resize(1);
+  t.points[0].qd[0] = 0.0;
+  t.points[0].qdd[0] = 0.0;
+  t.points[0].time = 0.0;
+  t.points[1].qd.resize(1);
+  t.points[1].qdd.resize(1);
+  t.points[1].qd[0] = 1.0;
+  t.points[1].qdd[0] = 0.0;
+  t.points[1].time = 1.0;
+
+  boost::shared_ptr<robot_controllers::TrajectorySampler> sampler_;
+  sampler_.reset(new robot_controllers::SplineTrajectorySampler(t));
+  robot_controllers::TrajectoryPoint p1 = sampler_->sample(0.5);
+
+  EXPECT_EQ(1, p1.qd.size());
+  EXPECT_EQ(1, p1.qdd.size());
+}
+
+
 TEST(TrajectoryTests, test_pos_vel)
 {
   robot_controllers::Trajectory t;
@@ -180,7 +224,7 @@ TEST(TrajectoryTests, test_pos_vel)
 
 }
 
-TEST(TrajectoryTests, test_vel_accel)
+TEST(TrajectoryTests, test_pos_vel_accel)
 {
   robot_controllers::Trajectory t;
   t.points.resize(2);
