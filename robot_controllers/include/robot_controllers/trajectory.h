@@ -38,6 +38,8 @@
 #ifndef ROBOT_CONTROLLERS_TRAJECTORY_H_
 #define ROBOT_CONTROLLERS_TRAJECTORY_H_
 
+#include <algorithm>
+
 #include <ros/ros.h>
 #include <angles/angles.h>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -108,11 +110,28 @@ inline bool trajectoryFromMsg(const trajectory_msgs::JointTrajectory& message,
     TrajectoryPoint point;
     for (size_t j = 0; j < joints.size(); ++j)
     {
-      point.q.push_back(message.points[p].positions[mapping[j]]);
-      if (message.points[p].velocities.size() == message.points[p].positions.size())
-        point.qd.push_back(message.points[p].velocities[mapping[j]]);
-      if (message.points[p].accelerations.size() == message.points[p].positions.size())
+      bool has_positions = true;
+      // If you get positions but not velocities
+      if (message.points[p].positions.size() < message.points[p].velocities.size())
+        has_positions = false;
+      // If you get positions, accelerations, and velocities
+      if (message.points[p].accelerations.size() == message.points[p].positions.size() &&
+          has_positions)
         point.qdd.push_back(message.points[p].accelerations[mapping[j]]);
+      // If you get positions and velocities
+      if (message.points[p].velocities.size() == message.points[p].positions.size() &&
+          has_positions)
+        point.qd.push_back(message.points[p].velocities[mapping[j]]);
+      // If you get accelerations and velocities but not positions
+      if (message.points[p].accelerations.size() == message.points[p].velocities.size() &&
+          !has_positions)
+        point.qdd.push_back(message.points[p].accelerations[mapping[j]]);
+      // If you get velocities but not positions
+      if (!has_positions)
+        point.qd.push_back(message.points[p].velocities[mapping[j]]);
+      // If you get positions
+      if (has_positions)
+        point.q.push_back(message.points[p].positions[mapping[j]]);
     }
     point.time = start_time + message.points[p].time_from_start.toSec(); 
     trajectory->points.push_back(point);
@@ -148,7 +167,10 @@ inline bool spliceTrajectories(const Trajectory& t1,
   }
 
   // Check sizes
-  size_t num_joints = t1.points[0].q.size();
+  size_t num_joints = std::max(t1.points[0].q.size(), t1.points[0].qd.size());
+
+  bool has_positions = (t1.points[0].q.size() == num_joints) &&
+                       (t2.points[0].q.size() == num_joints);
   bool has_velocities = (t1.points[0].qd.size() == num_joints) &&
                         (t2.points[0].qd.size() == num_joints);
   bool has_accelerations = (t1.points[0].qdd.size() == num_joints) &&
@@ -212,6 +234,16 @@ inline bool spliceTrajectories(const Trajectory& t1,
     }
   }
 
+  if (!has_positions)
+  {
+    // Remove any velocities in output trajectory
+    for (size_t i = 0; i < t->points.size(); i++)
+    {
+      t->points[i].q.clear();
+    }
+  }
+
+
   return true;
 }
 
@@ -226,16 +258,30 @@ inline void rosPrintTrajectory(Trajectory& t)
     ROS_INFO_STREAM("  Point " << p << " at " << std::setprecision (15) << t.points[p].time);
     for (size_t j = 0; j < t.points[p].q.size(); ++j)
     {
-      if (t.points[p].qdd.size() == t.points[p].q.size())
+      bool has_positions = true;
+      if (t.points[p].q.size() < t.points[p].qd.size())
+      {
+        has_positions = false;
+      }
+      if (t.points[p].qdd.size() == t.points[p].q.size() && has_positions)
       {
         ROS_INFO_STREAM("    " << std::setprecision (5) << t.points[p].q[j] <<
                           ", " << std::setprecision (5) << t.points[p].qd[j] <<
                           ", " << std::setprecision (5) << t.points[p].qdd[j]);
       }
-      else if(t.points[p].q.size() == t.points[p].q.size())
+      else if(t.points[p].qd.size() == t.points[p].q.size())
       {
         ROS_INFO_STREAM("    " << std::setprecision (5) << t.points[p].q[j] <<
                           ", " << std::setprecision (5) << t.points[p].qd[j]);
+      }
+      else if (t.points[p].qdd.size() == t.points[p].qd.size() && !has_positions)
+      {
+        ROS_INFO_STREAM("    " << std::setprecision (5) << t.points[p].qd[j] <<
+                          ", " << std::setprecision (5) << t.points[p].qdd[j]);
+      }
+      else if (!has_positions)
+      {
+        ROS_INFO_STREAM("    " << std::setprecision (5) << t.points[p].qd[j]);
       }
       else
       {

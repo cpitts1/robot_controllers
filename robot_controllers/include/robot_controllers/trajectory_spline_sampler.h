@@ -284,7 +284,8 @@ public:
         // Set up spline
         segments_[p].splines.resize(num_joints);
         // If you have accelerations, positions, and velocities
-        if (trajectory.points[p].qdd.size() == trajectory.points[p].q.size() && !pos_zero_)
+        if (trajectory.points[p].qdd.size() == trajectory.points[p].q.size() &&
+            !pos_zero_)
         {
           result.q.resize(num_joints);
           result.qd.resize(num_joints);
@@ -323,7 +324,8 @@ public:
           segments_[p].type = CUBIC;
         }
         // If you have no positions but you have accelerations and velocities
-        else if (pos_zero_ && trajectory.points[p].qdd.size() == trajectory.points[p].qd.size())
+        else if (trajectory.points[p].qdd.size() == trajectory.points[p].qd.size() &&
+                 pos_zero_)
         {
           result.qd.resize(num_joints);
           result.qdd.resize(num_joints);
