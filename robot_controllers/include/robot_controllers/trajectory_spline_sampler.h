@@ -259,13 +259,14 @@ public:
         }
       }
       segments_[0].type = LINEAR;
+
       if (pos_zero_)
       {
         result.qd.resize(num_joints);
       }
       else
       {
-        result.qd.resize(num_joints);
+        result.q.resize(num_joints);
       }
     }
     else
@@ -283,7 +284,7 @@ public:
         // Set up spline
         segments_[p].splines.resize(num_joints);
         // If you have accelerations, positions, and velocities
-        if (trajectory.points[p].qdd.size() == trajectory.points[p].q.size())
+        if (trajectory.points[p].qdd.size() == trajectory.points[p].q.size() && !pos_zero_)
         {
           result.q.resize(num_joints);
           result.qd.resize(num_joints);
