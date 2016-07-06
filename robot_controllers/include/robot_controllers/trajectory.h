@@ -111,7 +111,7 @@ inline bool trajectoryFromMsg(const trajectory_msgs::JointTrajectory& message,
     for (size_t j = 0; j < joints.size(); ++j)
     {
       bool has_positions = true;
-      // If you get positions but not velocities
+      // If you get velocities but not positions
       if (message.points[p].positions.size() < message.points[p].velocities.size())
         has_positions = false;
       // If you get positions, accelerations, and velocities
