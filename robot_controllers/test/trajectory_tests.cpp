@@ -123,9 +123,144 @@ TEST(TrajectoryTests, test_multiple_unwinds)
   EXPECT_EQ(-15.849555921538759, t.points[9].q[0]);
 }
 
+// Splice with position based trajectory
+TEST(TrajectoryTests, test_splice_pos)
+{
+  robot_controllers::Trajectory t0;
+  t0.points.resize(0); 
+
+  robot_controllers::Trajectory t1;
+  t1.points.resize(3);
+  t1.points[0].q.push_back(0.0);
+  t1.points[0].time = 0.0;
+  t1.points[1].q.push_back(1.0);
+  t1.points[1].time = 1.0;
+  t1.points[2].q.push_back(2.0);
+  t1.points[2].time = 2.0;
+
+  robot_controllers::Trajectory t2;
+  t2.points.resize(3);
+  t2.points[0].q.push_back(3.0);
+  t2.points[0].time = 2.0;
+  t2.points[1].q.push_back(4.0);
+  t2.points[1].time = 3.0;
+  t2.points[2].q.push_back(5.0);
+  t2.points[2].time = 4.0;
+
+  robot_controllers::Trajectory t_false;
+  EXPECT_FALSE(spliceTrajectories(t0, t1, 0.0, &t_false));
+
+  robot_controllers::Trajectory t_new;
+  EXPECT_TRUE(spliceTrajectories(t1, t2, 0.0, &t_new));
+
+  EXPECT_EQ(1.0, t_new.points[1].q[0]);
+  EXPECT_EQ(3.0, t_new.points[2].q[0]);
+  EXPECT_EQ(5.0, t_new.points[4].q[0]);
+  EXPECT_EQ(5, t_new.size());
+  EXPECT_EQ(0, t_new.points[0].qd.size());
+  EXPECT_EQ(0, t_new.points[0].qdd.size());
+}
+
+// Splice with velocity based trajectory
+TEST(TrajectoryTests, test_splice_vel)
+{
+  robot_controllers::Trajectory t1;
+  t1.points.resize(2);
+  t1.points[0].qd.push_back(0.0);
+  t1.points[0].time = 0.0;
+  t1.points[1].qd.push_back(1.0);
+  t1.points[1].time = 1.0;
+
+  robot_controllers::Trajectory t2;
+  t2.points.resize(2);
+  t2.points[0].qd.push_back(3.0);
+  t2.points[0].time = 1.0;
+  t2.points[1].qd.push_back(4.0);
+  t2.points[1].time = 2.0;
+
+  robot_controllers::Trajectory t_new;
+  EXPECT_TRUE(spliceTrajectories(t1, t2, 0.0, &t_new));
+
+  EXPECT_EQ(3, t_new.size());
+  EXPECT_EQ(1, t_new.points[0].qd.size());
+  EXPECT_EQ(0, t_new.points[0].q.size());
+  EXPECT_EQ(0, t_new.points[0].qdd.size());
+}
+
+// Splice with position and velocity based trajectory
+TEST(TrajectoryTests, test_splice_pos_vel)
+{
+  robot_controllers::Trajectory t1;
+  t1.points.resize(2);
+  t1.points[0].q.push_back(0.0);
+  t1.points[0].qd.push_back(1.0);
+  t1.points[0].time = 0.0;
+  t1.points[1].q.push_back(1.0);
+  t1.points[1].qd.push_back(1.0);
+  t1.points[1].time = 1.0;
+
+  robot_controllers::Trajectory t2;
+  t2.points.resize(2);
+  t2.points[0].q.push_back(3.0);
+  t2.points[0].qd.push_back(1.0);
+  t2.points[0].time = 1.0;
+  t2.points[1].q.push_back(4.0);
+  t2.points[1].qd.push_back(1.0);
+  t2.points[1].time = 2.0;
+
+  robot_controllers::Trajectory t_new;
+  EXPECT_TRUE(spliceTrajectories(t1, t2, 0.0, &t_new));
+
+  EXPECT_EQ(3, t_new.size());
+  EXPECT_EQ(1, t_new.points[0].q.size());
+  EXPECT_EQ(1, t_new.points[0].qd.size());
+  EXPECT_EQ(0, t_new.points[0].qdd.size());
+}
+
+// Splice with velocity and acceleration based trajectory
+TEST(TrajectoryTests, test_splice_vel_accel)
+{
+  robot_controllers::Trajectory t1;
+  t1.points.resize(2);
+  t1.points[0].qd.push_back(0.0);
+  t1.points[0].qdd.push_back(1.0);
+  t1.points[0].time = 0.0;
+  t1.points[1].qd.push_back(1.0);
+  t1.points[1].qdd.push_back(1.0);
+  t1.points[1].time = 1.0;
+
+  robot_controllers::Trajectory t2;
+  t2.points.resize(2);
+  t2.points[0].qd.push_back(3.0);
+  t2.points[0].qdd.push_back(1.0);
+  t2.points[0].time = 1.0;
+  t2.points[1].qd.push_back(4.0);
+  t2.points[1].qdd.push_back(1.0);
+  t2.points[1].time = 2.0;
+
+  robot_controllers::Trajectory t_new;
+  EXPECT_TRUE(spliceTrajectories(t1, t2, 0.0, &t_new));
+
+  EXPECT_EQ(3, t_new.size());
+  EXPECT_EQ(1, t_new.points[0].qd.size());
+  EXPECT_EQ(1, t_new.points[0].qdd.size());
+  EXPECT_EQ(0, t_new.points[0].q.size());
+}
+
 // Run all the tests that were declared with TEST()
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+
+
+
+
+
+
+
+
+
+

@@ -1,3 +1,9 @@
+catkin_add_gtest(trajectory_msg_tests trajectory_msg_tests.cpp)
+target_link_libraries(trajectory_msg_tests
+  ${Boost_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
+
 catkin_add_gtest(trajectory_tests trajectory_tests.cpp)
 target_link_libraries(trajectory_tests
   ${Boost_LIBRARIES}
@@ -5,7 +11,7 @@ target_link_libraries(trajectory_tests
 )
 
 catkin_add_gtest(sampler_tests sampler_tests.cpp)
-target_link_libraries(trajectory_tests
+target_link_libraries(sampler_tests
   ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
 )

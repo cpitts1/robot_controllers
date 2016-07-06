@@ -172,7 +172,6 @@ TEST(TrajectoryTests, test_vel_accel)
   robot_controllers::TrajectoryPoint p2 = sampler_->sample(0.75);
   robot_controllers::TrajectoryPoint p3 = sampler_->sample(1.0);
 
-  // Test other numbers??
   EXPECT_EQ(1, p1.qd.size());
   EXPECT_EQ(1, p1.qdd.size()); 
 
