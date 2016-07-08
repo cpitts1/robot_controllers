@@ -224,7 +224,7 @@ public:
     }
 
     pos_zero_ = false;
-    if (trajectory.points[0].qd.size() > trajectory.points[0].q.size())
+    if (trajectory.points[0].q.empty())
     {
       pos_zero_ = true;
     }
@@ -451,7 +451,7 @@ private:
   Trajectory trajectory_;
   TrajectoryPoint result;
   int seg_;
-  bool pos_zero_; 
+  bool pos_zero_;
 };
 
 }  // namespace robot_controllers

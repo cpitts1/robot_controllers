@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Author: Michael Ferguson
+// Author: Cappy Pitts
 
 #include <gtest/gtest.h>
 #include <robot_controllers/trajectory.h>
@@ -36,7 +36,7 @@
 
 
 // Test trajectory with positions only
-TEST(TrajectoryTests, test_pos)
+TEST(SamplerTests, test_pos)
 {
   robot_controllers::Trajectory t;
   t.points.resize(2);
@@ -53,15 +53,17 @@ TEST(TrajectoryTests, test_pos)
   robot_controllers::TrajectoryPoint p1 = sampler_->sample(0.5);
   robot_controllers::TrajectoryPoint p2 = sampler_->sample(0.75);
   robot_controllers::TrajectoryPoint p3 = sampler_->sample(1.0);
+  robot_controllers::TrajectoryPoint p4 = sampler_->sample(1.5);
 
   EXPECT_EQ(0.0, p0.q.size());
   EXPECT_EQ(0.5, p1.q[0]);
   EXPECT_EQ(0.75, p2.q[0]);
   EXPECT_EQ(1.0, p3.q[0]);
+  EXPECT_EQ(1.0, p4.q[0]);
 }
 
 // Test trajectory with positions and velocities
-TEST(TrajectoryTests, test_pos_vel)
+TEST(SamplerTests, test_pos_vel)
 {
   robot_controllers::Trajectory t;
   t.points.resize(2);
@@ -82,15 +84,17 @@ TEST(TrajectoryTests, test_pos_vel)
   robot_controllers::TrajectoryPoint p1 = sampler_->sample(0.5);
   robot_controllers::TrajectoryPoint p2 = sampler_->sample(0.75);
   robot_controllers::TrajectoryPoint p3 = sampler_->sample(1.0);
+  robot_controllers::TrajectoryPoint p4 = sampler_->sample(1.5);
 
   EXPECT_EQ(0.0, p0.q.size());
   EXPECT_EQ(0.5, p1.q[0]);
   EXPECT_EQ(0.75, p2.q[0]);
   EXPECT_EQ(1.0, p3.q[0]);
+  EXPECT_EQ(1.0, p4.q[0]);
 }
 
 // Test trajectory with positions, velocities, and accelerations
-TEST(TrajectoryTests, test_pos_vel_accel)
+TEST(SamplerTests, test_pos_vel_accel)
 {
   robot_controllers::Trajectory t;
   t.points.resize(2);
@@ -115,15 +119,17 @@ TEST(TrajectoryTests, test_pos_vel_accel)
   robot_controllers::TrajectoryPoint p1 = sampler_->sample(0.5);
   robot_controllers::TrajectoryPoint p2 = sampler_->sample(0.75);
   robot_controllers::TrajectoryPoint p3 = sampler_->sample(1.0);
+  robot_controllers::TrajectoryPoint p4 = sampler_->sample(1.5);
 
   EXPECT_EQ(0.0, p0.q.size());
   EXPECT_EQ(0.5, p1.q[0]);
   EXPECT_EQ(0.75, p2.q[0]);
   EXPECT_EQ(1.0, p3.q[0]);
+  EXPECT_EQ(1.0, p4.q[0]);
 }
 
 // Test trajectory with velocities only
-TEST(TrajectoryTests, test_vel)
+TEST(SamplerTests, test_vel)
 {
   robot_controllers::Trajectory t;
   t.points.resize(2);
@@ -140,6 +146,7 @@ TEST(TrajectoryTests, test_vel)
   robot_controllers::TrajectoryPoint p1 = sampler_->sample(0.5);
   robot_controllers::TrajectoryPoint p2 = sampler_->sample(0.75);
   robot_controllers::TrajectoryPoint p3 = sampler_->sample(1.0);
+  robot_controllers::TrajectoryPoint p4 = sampler_->sample(1.5);
 
   EXPECT_EQ(1, p1.qd.size());
 
@@ -147,10 +154,11 @@ TEST(TrajectoryTests, test_vel)
   EXPECT_EQ(0.5, p1.qd[0]);
   EXPECT_EQ(0.75, p2.qd[0]);
   EXPECT_EQ(1.0, p3.qd[0]);
+  EXPECT_EQ(1.0, p4.qd[0]);
 }
 
 // Test trajectory with velocities and accelerations
-TEST(TrajectoryTests, test_vel_accel)
+TEST(SamplerTests, test_vel_accel)
 {
   robot_controllers::Trajectory t;
   t.points.resize(2);
@@ -171,14 +179,16 @@ TEST(TrajectoryTests, test_vel_accel)
   robot_controllers::TrajectoryPoint p1 = sampler_->sample(0.5);
   robot_controllers::TrajectoryPoint p2 = sampler_->sample(0.75);
   robot_controllers::TrajectoryPoint p3 = sampler_->sample(1.0);
+  robot_controllers::TrajectoryPoint p4 = sampler_->sample(1.5);
 
   EXPECT_EQ(1, p1.qd.size());
-  EXPECT_EQ(1, p1.qdd.size()); 
+  EXPECT_EQ(1, p1.qdd.size());
 
   EXPECT_EQ(0.0, p0.qd.size());
   EXPECT_EQ(0.5, p1.qd[0]);
   EXPECT_EQ(0.75, p2.qd[0]);
   EXPECT_EQ(1.0, p3.qd[0]);
+  EXPECT_EQ(1.0, p4.qd[0]);
 }
 
 

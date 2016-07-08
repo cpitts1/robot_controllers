@@ -30,6 +30,7 @@
 
 #include <gtest/gtest.h>
 #include <robot_controllers/trajectory.h>
+#include <vector>
 
 TEST(TrajectoryTests, test_unwind)
 {
@@ -127,7 +128,7 @@ TEST(TrajectoryTests, test_multiple_unwinds)
 TEST(TrajectoryTests, test_splice_pos)
 {
   robot_controllers::Trajectory t0;
-  t0.points.resize(0); 
+  t0.points.resize(0);
 
   robot_controllers::Trajectory t1;
   t1.points.resize(3);
@@ -253,14 +254,3 @@ int main(int argc, char **argv)
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
-
-
-
-
-
-
-
-
-
-

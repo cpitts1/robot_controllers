@@ -26,7 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Author: Michael Ferguson
+// Author: Cappy Pitts
 
 #include <gtest/gtest.h>
 #include <robot_controllers/trajectory.h>
@@ -34,9 +34,11 @@
 #include <iostream>
 #include <ros/ros.h>
 #include <trajectory_msgs/JointTrajectory.h>
+#include <string>
+#include <vector>
 
 // Test trajectory msg with positions only
-TEST(TrajectoryTests, test_pos_msg)
+TEST(TrajectoryMsgTests, test_pos_msg)
 {
   ros::Time::init();
   trajectory_msgs::JointTrajectoryPoint p0, p1;
@@ -70,7 +72,7 @@ TEST(TrajectoryTests, test_pos_msg)
 
 
 // Test trajectory msg with positions and velocities
-TEST(TrajectoryTests, test_pos_vel_msg)
+TEST(TrajectoryMsgTests, test_pos_vel_msg)
 {
   ros::Time::init();
   trajectory_msgs::JointTrajectoryPoint p0, p1;
@@ -108,7 +110,7 @@ TEST(TrajectoryTests, test_pos_vel_msg)
 
 
 // Test trajectory msg with positions, velocities, and accelerations
-TEST(TrajectoryTests, test_pos_vel_accel_msg)
+TEST(TrajectoryMsgTests, test_pos_vel_accel_msg)
 {
   ros::Time::init();
   trajectory_msgs::JointTrajectoryPoint p0, p1;
@@ -150,7 +152,7 @@ TEST(TrajectoryTests, test_pos_vel_accel_msg)
 }
 
 // Test trajectory msg with velocities only
-TEST(TrajectoryTests, test_vel_msg)
+TEST(TrajectoryMsgTests, test_vel_msg)
 {
   ros::Time::init();
   trajectory_msgs::JointTrajectoryPoint p0, p1;
@@ -183,7 +185,7 @@ TEST(TrajectoryTests, test_vel_msg)
 }
 
 // Test trajectory msg with velocities and accelerations
-TEST(TrajectoryTests, test_vel_accel_msg)
+TEST(TrajectoryMsgTests, test_vel_accel_msg)
 {
   ros::Time::init();
   trajectory_msgs::JointTrajectoryPoint p0, p1;

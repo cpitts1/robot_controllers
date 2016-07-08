@@ -112,28 +112,33 @@ inline bool trajectoryFromMsg(const trajectory_msgs::JointTrajectory& message,
     {
       bool has_positions = true;
       // If you get velocities but not positions
-      if (message.points[p].positions.size() < message.points[p].velocities.size())
+      if (message.points[p].positions.empty())
         has_positions = false;
-      // If you get positions, accelerations, and velocities
-      if (message.points[p].accelerations.size() == message.points[p].positions.size() &&
-          has_positions)
-        point.qdd.push_back(message.points[p].accelerations[mapping[j]]);
-      // If you get positions and velocities
-      if (message.points[p].velocities.size() == message.points[p].positions.size() &&
-          has_positions)
-        point.qd.push_back(message.points[p].velocities[mapping[j]]);
-      // If you get accelerations and velocities but not positions
-      if (message.points[p].accelerations.size() == message.points[p].velocities.size() &&
-          !has_positions)
-        point.qdd.push_back(message.points[p].accelerations[mapping[j]]);
-      // If you get velocities but not positions
-      if (!has_positions)
-        point.qd.push_back(message.points[p].velocities[mapping[j]]);
-      // If you get positions
       if (has_positions)
+      {
         point.q.push_back(message.points[p].positions[mapping[j]]);
+        // If you get positions, accelerations, and velocities
+        if (message.points[p].accelerations.size() == message.points[p].positions.size())
+        {
+          point.qdd.push_back(message.points[p].accelerations[mapping[j]]);
+        }
+        // If you get positions and velocities
+        if (message.points[p].velocities.size() == message.points[p].positions.size())
+        {
+          point.qd.push_back(message.points[p].velocities[mapping[j]]);
+        }
+      }
+      else
+      { 
+        point.qd.push_back(message.points[p].velocities[mapping[j]]);
+        // If you get accelerations and velocities but not positions
+        if (message.points[p].accelerations.size() == message.points[p].velocities.size())
+        {
+          point.qdd.push_back(message.points[p].accelerations[mapping[j]]);
+        }
+      }
     }
-    point.time = start_time + message.points[p].time_from_start.toSec(); 
+    point.time = start_time + message.points[p].time_from_start.toSec();
     trajectory->points.push_back(point);
   }
 
@@ -236,7 +241,7 @@ inline bool spliceTrajectories(const Trajectory& t1,
 
   if (!has_positions)
   {
-    // Remove any velocities in output trajectory
+    // Remove any positions in output trajectory
     for (size_t i = 0; i < t->points.size(); i++)
     {
       t->points[i].q.clear();
@@ -269,7 +274,7 @@ inline void rosPrintTrajectory(Trajectory& t)
                           ", " << std::setprecision (5) << t.points[p].qd[j] <<
                           ", " << std::setprecision (5) << t.points[p].qdd[j]);
       }
-      else if(t.points[p].qd.size() == t.points[p].q.size())
+      else if (t.points[p].qd.size() == t.points[p].q.size())
       {
         ROS_INFO_STREAM("    " << std::setprecision (5) << t.points[p].q[j] <<
                           ", " << std::setprecision (5) << t.points[p].qd[j]);
