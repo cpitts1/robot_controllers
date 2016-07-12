@@ -1,6 +1,7 @@
 find_package(rostest REQUIRED)
 add_executable(joint_trajectory_tests joint_trajectory_tests.cpp)
 target_link_libraries(joint_trajectory_tests
+  robot_controllers
   ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
   ${GTEST_LIBRARIES}

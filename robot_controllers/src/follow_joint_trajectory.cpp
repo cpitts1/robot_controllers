@@ -58,7 +58,6 @@ int FollowJointTrajectoryController::init(ros::NodeHandle& nh, ControllerManager
     initialized_ = false;
     return -1;
   }
-
   Controller::init(nh, manager);
   manager_ = manager;
 
@@ -196,12 +195,15 @@ void FollowJointTrajectoryController::update(const ros::Time& now, const ros::Du
     last_sample_ = p;
 
     // Update joints
-    if (p.q.size() == joints_.size())
+    if (p.q.size() == joints_.size() || p.qd.size() == joints_.size())
     {
-      // Position is good
-      for (size_t i = 0; i < joints_.size(); ++i)
+      if (p.q.size() == joints_.size())
       {
-        feedback_.desired.positions[i] = p.q[i];
+        // Position is good
+        for (size_t i = 0; i < joints_.size(); ++i)
+        {
+          feedback_.desired.positions[i] = p.q[i];
+        }
       }
 
       if (p.qd.size() == joints_.size())
@@ -278,15 +280,17 @@ void FollowJointTrajectoryController::update(const ros::Time& now, const ros::Du
       if (now.toSec() >= sampler_->end_time())
       {
         bool inside_tolerances = true;
-        for (size_t j = 0; j < joints_.size(); ++j)
+        if (!p.q.empty())
         {
-          if ((goal_tolerance_.q[j] > 0) &&
-              (fabs(feedback_.error.positions[j]) > goal_tolerance_.q[j]))
+          for (size_t j = 0; j < joints_.size(); ++j)
           {
-            inside_tolerances = false;
+            if ((goal_tolerance_.q[j] > 0) &&
+                (fabs(feedback_.error.positions[j]) > goal_tolerance_.q[j]))
+            {
+              inside_tolerances = false;
+            }
           }
         }
-
         if (inside_tolerances)
         {
           control_msgs::FollowJointTrajectoryResult result;
@@ -419,23 +423,28 @@ void FollowJointTrajectoryController::executeCb(const control_msgs::FollowJointT
       // use the generated trajectory
       executable_trajectory = new_trajectory;
 
-      // if this hasn't started yet, need to insert current position
+      // if this hasn't started yet, need to insert
+      // current position or velocity
       if (goal->trajectory.points[0].time_from_start.toSec() > 0.0)
       {
         executable_trajectory.points.insert(
           executable_trajectory.points.begin(),
-          getPointFromCurrent(new_trajectory.points[0].qd.size() > 0,
+          getPointFromCurrent(new_trajectory.points[0].q.size() > 0,
+                              new_trajectory.points[0].qd.size() > 0,
                               new_trajectory.points[0].qdd.size() > 0,
-                              true));
+                              new_trajectory.points[0].q.size() >
+                              new_trajectory.points[0].qd.size()));
       }
     }
     else
     {
       // A single point, with nothing in the queue!
       executable_trajectory.points.push_back(
-          getPointFromCurrent(new_trajectory.points[0].qd.size() > 0,
+          getPointFromCurrent(new_trajectory.points[0].q.size() > 0,
+                              new_trajectory.points[0].qd.size() > 0,
                               new_trajectory.points[0].qdd.size() > 0,
-                              true));
+                              new_trajectory.points[0].q.size() >
+                              new_trajectory.points[0].qd.size()));
       executable_trajectory.points.push_back(new_trajectory.points[0]);
     }
   }
@@ -564,13 +573,16 @@ void FollowJointTrajectoryController::executeCb(const control_msgs::FollowJointT
 }
 
 TrajectoryPoint FollowJointTrajectoryController::getPointFromCurrent(
-  bool incl_vel, bool incl_acc, bool zero_vel)
+  bool incl_pos, bool incl_vel, bool incl_acc, bool zero_vel)
 {
   TrajectoryPoint point;
 
-  point.q.resize(joints_.size());
-  for (size_t j = 0; j < joints_.size(); ++j)
-    point.q[j] = joints_[j]->getPosition();
+  if (incl_pos)
+  {
+    point.q.resize(joints_.size());
+    for (size_t j = 0; j < joints_.size(); ++j)
+      point.q[j] = joints_[j]->getPosition();
+  }
 
   if (incl_vel && zero_vel)
   {

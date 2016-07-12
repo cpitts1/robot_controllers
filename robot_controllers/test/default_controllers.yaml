@@ -1,0 +1,10 @@
+head_controller:
+  follow_joint_trajectory:
+    type: "robot_controllers/FollowJointTrajectoryController"
+    joints:
+      - head_pan_joint
+      - head_tilt_joint
+
+robot_driver:
+  default_controllers:
+    - "head_controller/follow_joint_trajectory"

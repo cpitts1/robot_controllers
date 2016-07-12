@@ -30,9 +30,58 @@
 
 #include <ros/ros.h>
 #include <gtest/gtest.h>
+#include <robot_controllers/follow_joint_trajectory.h>
+#include <robot_controllers_interface/controller_manager.h>
+#include <iostream>
+#include <ros/console.h>
+#include <boost/shared_ptr.hpp>
 
-TEST(ROS_Tests, basicTest){
-  EXPECT_TRUE(true);
+TEST(JointTrajectoryTests, init_controller_test)
+{
+  ros::Time::init();
+  ros::NodeHandle nh("head_controller/follow_joint_trajectory");
+  ros::NodeHandle nh2("robot_driver");
+  std::vector<std::string> names;
+  ASSERT_TRUE(nh.getParam("joints", names));
+  EXPECT_EQ(2, names.size());
+  EXPECT_EQ("head_pan_joint", names[0]);
+
+  std::vector<std::string> controller_params;
+  nh2.getParam("default_controllers", controller_params);
+  EXPECT_EQ(7, controller_params.size());
+
+  /*
+  control_msgs::FollowJointTrajectoryGoal goal;
+  trajectory_msgs::JointTrajectoryPoint p0, p1;
+  trajectory_msgs::JointTrajectory t_msg;
+
+  p0.positions.push_back(0.0);
+  p0.positions.push_back(1.0);
+  p0.time_from_start = ros::Duration(1.0);
+  p1.positions.push_back(2.0);
+  p1.positions.push_back(3.0);
+  p1.time_from_start = ros::Duration(2.0);
+  t_msg.points.push_back(p0);
+  t_msg.points.push_back(p1);
+  t_msg.joint_names.push_back("head_pan_joint");
+  t_msg.joint_names.push_back("head_tilt_joint");
+
+  std::vector<std::string> joints;
+  joints.push_back("head_pan_joint");
+  joints.push_back("head_tilt_joint");
+
+  goal.trajectory = t_msg;
+  goal.goal_time_tolerance = ros::Duration(0.0);
+  */
+
+  robot_controllers::ControllerManager *manager = new robot_controllers::ControllerManager();
+  boost::shared_ptr<robot_controllers::FollowJointTrajectoryController> controller;
+  controller.reset(new robot_controllers::FollowJointTrajectoryController());
+
+  EXPECT_TRUE(manager);
+
+  //EXPECT_EQ(0, manager->init(nh2));
+  EXPECT_EQ(0, controller->init(nh, manager));
 }
 
 // Run all the tests that were declared with TEST()

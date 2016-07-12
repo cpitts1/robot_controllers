@@ -1,3 +1,8 @@
 <launch>
+
  <test test-name="joint_trajectory_tests" pkg="robot_controllers" type="joint_trajectory_tests" />
+
+ <rosparam file="$(find robot_controllers)/test/default_controllers.yaml" command="load" />
+
 </launch>
+

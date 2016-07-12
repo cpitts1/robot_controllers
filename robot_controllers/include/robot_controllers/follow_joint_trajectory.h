@@ -127,7 +127,7 @@ private:
   void executeCb(const control_msgs::FollowJointTrajectoryGoalConstPtr& goal);
 
   /** @brief Get a trajectory point from the current position/velocity/acceleration. */
-  TrajectoryPoint getPointFromCurrent(bool incl_vel, bool incl_acc, bool zero_vel);
+  TrajectoryPoint getPointFromCurrent(bool incl_pos, bool incl_vel, bool incl_acc, bool zero_vel);
 
   bool initialized_;
   ControllerManager* manager_;
